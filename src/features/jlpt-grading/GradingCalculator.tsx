@@ -26,13 +26,32 @@ import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group"
 
 const formatScore = (value: number) => value.toFixed(2)
 
-const getCountError = (mondai: MondaiConfig, value: number) => {
+const getQuestionCountRange = (mondai: MondaiConfig) => ({
+  min: Math.max(1, mondai.questionCount - 1),
+  max: mondai.questionCount + 1,
+})
+
+const getQuestionCountError = (mondai: MondaiConfig, value: number) => {
+  const range = getQuestionCountRange(mondai)
+
+  if (value < range.min) {
+    return `Không được nhỏ hơn ${range.min}`
+  }
+
+  if (value > range.max) {
+    return `Không được lớn hơn ${range.max}`
+  }
+
+  return ""
+}
+
+const getCountError = (value: number, adjustedQuestionCount: number) => {
   if (value < 0) {
     return "Không được nhỏ hơn 0"
   }
 
-  if (value > mondai.questionCount) {
-    return `Vượt quá số câu tối đa (${mondai.questionCount})`
+  if (value > adjustedQuestionCount) {
+    return `Vượt quá số câu tối đa (${adjustedQuestionCount})`
   }
 
   return ""
@@ -65,9 +84,12 @@ export function GradingCalculator() {
   const invalidCountIds = useMemo(
     () =>
       new Set(
-        levelConfig.mondai
-          .filter((mondai) => Boolean(getCountError(mondai, inputs[mondai.id]?.correctCount ?? 0)))
-          .map((mondai) => mondai.id)
+        levelConfig.mondai.filter((mondai) => {
+          const questionCount = inputs[mondai.id]?.questionCount ?? mondai.questionCount
+          const hasQuestionCountError = Boolean(getQuestionCountError(mondai, questionCount))
+          const hasCorrectCountError = Boolean(getCountError(inputs[mondai.id]?.correctCount ?? 0, questionCount))
+          return hasQuestionCountError || hasCorrectCountError
+        }).map((mondai) => mondai.id)
       ),
     [levelConfig.mondai, inputs]
   )
@@ -93,6 +115,19 @@ export function GradingCalculator() {
       [mondaiId]: {
         ...previous[mondaiId],
         correctCount: value,
+      },
+    }))
+  }
+
+  const updateQuestionCount = (mondaiId: string, nextValue: string) => {
+    const parsed = Number(nextValue)
+    const value = Number.isNaN(parsed) ? 0 : parsed
+
+    setInputs((previous) => ({
+      ...previous,
+      [mondaiId]: {
+        ...previous[mondaiId],
+        questionCount: value,
       },
     }))
   }
@@ -167,7 +202,8 @@ export function GradingCalculator() {
           <div className="space-y-1">
             <CardTitle className="text-xl">Bảng nhập đáp án đúng - {levelConfig.title}</CardTitle>
             <CardDescription>
-              Trọng số khuyến nghị được hiển thị để bạn cân đối. Có thể reset nhanh về giá trị mặc định.
+              Mỗi mondai có thể điều chỉnh tổng số câu trong biên ±1 để bám sát đề thực tế. Có thể reset
+              nhanh trọng số về giá trị mặc định.
             </CardDescription>
           </div>
           <Button variant="outline" onClick={resetWeights}>
@@ -198,7 +234,10 @@ export function GradingCalculator() {
                   <TableBody>
                     {sectionMondai.map((mondai) => {
                       const currentInput = inputs[mondai.id]
-                      const countError = getCountError(mondai, currentInput?.correctCount ?? 0)
+                      const questionCount = currentInput?.questionCount ?? mondai.questionCount
+                      const questionCountRange = getQuestionCountRange(mondai)
+                      const questionCountError = getQuestionCountError(mondai, questionCount)
+                      const countError = getCountError(currentInput?.correctCount ?? 0, questionCount)
                       const weightError = getWeightError(currentInput?.weight ?? mondai.defaultWeight)
 
                       return (
@@ -213,7 +252,7 @@ export function GradingCalculator() {
                             <Input
                               type="number"
                               min={0}
-                              max={mondai.questionCount}
+                              max={questionCount}
                               value={currentInput?.correctCount ?? 0}
                               aria-invalid={Boolean(countError)}
                               onChange={(event) => updateCorrectCount(mondai.id, event.target.value)}
@@ -223,7 +262,20 @@ export function GradingCalculator() {
                             ) : null}
                           </TableCell>
                           <TableCell className="align-top">
-                            <Badge variant="secondary">{mondai.questionCount}</Badge>
+                            <Input
+                              type="number"
+                              min={questionCountRange.min}
+                              max={questionCountRange.max}
+                              value={questionCount}
+                              aria-invalid={Boolean(questionCountError)}
+                              onChange={(event) => updateQuestionCount(mondai.id, event.target.value)}
+                            />
+                            <p className="text-muted-foreground mt-1 text-xs">
+                              Chuẩn: {mondai.questionCount} (cho phép {questionCountRange.min} - {questionCountRange.max})
+                            </p>
+                            {questionCountError ? (
+                              <p className="mt-1 text-xs text-destructive">{questionCountError}</p>
+                            ) : null}
                           </TableCell>
                           <TableCell className="align-top">
                             <Input

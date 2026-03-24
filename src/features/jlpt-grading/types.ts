@@ -53,6 +53,7 @@ export type LevelConfig = {
 
 export type MondaiInput = {
   correctCount: number
+  questionCount: number
   weight: number
 }
 

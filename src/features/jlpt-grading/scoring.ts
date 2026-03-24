@@ -10,10 +10,16 @@ const round2 = (value: number) => Math.round(value * 100) / 100
 
 const clamp = (value: number, min: number, max: number) => Math.max(min, Math.min(max, value))
 
+const getQuestionCountRange = (questionCount: number) => ({
+  min: Math.max(1, questionCount - 1),
+  max: questionCount + 1,
+})
+
 export function createInitialInputs(levelConfig: LevelConfig): GradingInputState {
   return levelConfig.mondai.reduce<GradingInputState>((acc, mondai) => {
     acc[mondai.id] = {
       correctCount: 0,
+      questionCount: mondai.questionCount,
       weight: mondai.defaultWeight,
     }
     return acc
@@ -26,12 +32,17 @@ function getSafeInput(mondai: MondaiConfig, inputs: GradingInputState) {
   if (!input) {
     return {
       correctCount: 0,
+      questionCount: mondai.questionCount,
       weight: mondai.defaultWeight,
     }
   }
 
+  const questionCountRange = getQuestionCountRange(mondai.questionCount)
+  const safeQuestionCount = clamp(input.questionCount || mondai.questionCount, questionCountRange.min, questionCountRange.max)
+
   return {
-    correctCount: clamp(input.correctCount || 0, 0, mondai.questionCount),
+    questionCount: safeQuestionCount,
+    correctCount: clamp(input.correctCount || 0, 0, safeQuestionCount),
     weight: clamp(input.weight || mondai.defaultWeight, 0.1, 10),
   }
 }
@@ -40,7 +51,7 @@ export function calculateEstimatedScore(levelConfig: LevelConfig, inputs: Gradin
   const mondaiResults = levelConfig.mondai.map((mondai) => {
     const input = getSafeInput(mondai, inputs)
     const weightedEarned = input.correctCount * input.weight
-    const weightedMax = mondai.questionCount * input.weight
+    const weightedMax = input.questionCount * input.weight
 
     return {
       mondaiId: mondai.id,
