@@ -3,7 +3,6 @@ import { useLocation, Link } from "react-router-dom"
 import {
   Sidebar,
   SidebarContent,
-  SidebarFooter,
   SidebarHeader,
   SidebarMenu,
   SidebarMenuItem,
@@ -12,7 +11,6 @@ import {
 } from "@/components/ui/sidebar"
 import { menuItems } from "@/config/menu"
 import { LucideLayoutDashboard, ChevronRight } from "lucide-react"
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 
 export function AdminSidebar() {
   const location = useLocation()
@@ -36,7 +34,7 @@ export function AdminSidebar() {
             <LucideLayoutDashboard className="h-4 w-4" />
           </div>
           <div className="flex flex-col">
-            <span className="text-sm font-semibold">Admin Dashboard</span>
+            <span className="text-sm font-semibold">Chấm điểm JLPT</span>
           </div>
         </div>
       </SidebarHeader>
@@ -105,7 +103,7 @@ export function AdminSidebar() {
           })}
         </SidebarMenu>
       </SidebarContent>
-      <SidebarFooter className="mt-auto border-t border-border p-4">
+      {/* <SidebarFooter className="mt-auto border-t border-border p-4">
         <div className="flex items-center gap-2">
           <Avatar className="h-8 w-8">
             <AvatarImage src="/placeholder.svg?height=32&width=32" alt="User" />
@@ -116,7 +114,7 @@ export function AdminSidebar() {
             <span className="text-xs text-muted-foreground">admin@example.com</span>
           </div>
         </div>
-      </SidebarFooter>
+      </SidebarFooter> */}
       <SidebarRail />
     </Sidebar>
   )

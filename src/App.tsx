@@ -3,7 +3,7 @@ import { ThemeProvider } from "@/components/ui/theme-provider"
 
 function App() {
   return (
-    <ThemeProvider defaultTheme="system" storageKey="app-theme">
+    <ThemeProvider defaultTheme="light" storageKey="app-theme">
       <AdminRoutes />
     </ThemeProvider>
   )
