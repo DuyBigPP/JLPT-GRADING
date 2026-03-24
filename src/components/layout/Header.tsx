@@ -1,6 +1,6 @@
 import type React from "react"
 import { useLocation, Link } from "react-router-dom"
-import { ChevronRight, Home } from "lucide-react"
+import { ChevronRight} from "lucide-react"
 import { SidebarTrigger } from "@/components/ui/sidebar"
 import { menuItems } from "@/config/menu"
 
@@ -22,7 +22,7 @@ export function BreadcrumbHeader() {
 
         <nav className="flex items-center text-sm">
           <ol className="flex items-center gap-1">
-            <li>
+            {/* <li>
               <Link
                 to="/"
                 className="flex h-9 items-center gap-1.5 rounded-md px-2 text-muted-foreground transition-colors hover:text-foreground"
@@ -30,7 +30,7 @@ export function BreadcrumbHeader() {
                 <Home className="h-4 w-4" />
                 <span className="sr-only sm:not-sr-only sm:inline">Home</span>
               </Link>
-            </li>
+            </li> */}
 
             {breadcrumbs.map((item, index) => (
               <li key={item.path} className="flex items-center gap-1">

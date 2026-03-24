@@ -1,142 +1,111 @@
-import { DataTable } from "@/components/common/DataTable"
-import { 
-  createSortableColumn, 
-  createActionsColumn, 
-  createStatusColumn,
-  createDateColumn 
-} from "@/components/common/DataTableHelpers"
-import { ColumnDef } from "@tanstack/react-table"
-
-// Sample data type
-type User = {
-  id: string
-  name: string
-  email: string
-  role: string
-  status: "active" | "inactive" | "pending"
-  createdAt: string
-  lastLogin: string
-}
-
-// Sample data
-const sampleUsers: User[] = [
-  {
-    id: "1",
-    name: "John Doe",
-    email: "john@example.com",
-    role: "Admin",
-    status: "active",
-    createdAt: "2024-01-15",
-    lastLogin: "2024-09-04"
-  },
-  {
-    id: "2", 
-    name: "Jane Smith",
-    email: "jane@example.com",
-    role: "User",
-    status: "active",
-    createdAt: "2024-02-20",
-    lastLogin: "2024-09-03"
-  },
-  {
-    id: "3",
-    name: "Mike Johnson", 
-    email: "mike@example.com",
-    role: "Editor",
-    status: "inactive",
-    createdAt: "2024-03-10",
-    lastLogin: "2024-08-15"
-  },
-  {
-    id: "4",
-    name: "Sarah Wilson",
-    email: "sarah@example.com", 
-    role: "User",
-    status: "pending",
-    createdAt: "2024-08-28",
-    lastLogin: "2024-09-01"
-  },
-  {
-    id: "5",
-    name: "David Brown",
-    email: "david@example.com",
-    role: "Admin", 
-    status: "active",
-    createdAt: "2024-06-12",
-    lastLogin: "2024-09-04"
-  }
-]
+import { BookOpenCheck, Calculator, CircleAlert, ListChecks, Radar } from "lucide-react"
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
+import { Badge } from "@/components/ui/badge"
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { Separator } from "@/components/ui/separator"
 
 export default function DashboardPage() {
-  // Define columns with better alignment and sizing using helpers
-  const columns: ColumnDef<User>[] = [
-    createSortableColumn("name", "Name", {
-      size: 150,
-      className: "font-medium"
-    }),
-    createSortableColumn("email", "Email", {
-      size: 200,
-      className: "text-muted-foreground"
-    }),
-    createSortableColumn("role", "Role", {
-      size: 100,
-      className: "font-medium"
-    }),
-    createStatusColumn("status", {
-      active: { label: "Active", variant: "default" },
-      inactive: { label: "Inactive", variant: "secondary" }, 
-      pending: { label: "Pending", variant: "outline" }
-    }, { size: 100 }),
-    createDateColumn("createdAt", "Created At", { size: 120 }),
-    createDateColumn("lastLogin", "Last Login", { size: 120 }),
-    createActionsColumn<User>({
-      onView: (user) => console.log("View user:", user),
-      onEdit: (user) => console.log("Edit user:", user),
-      onDelete: (user) => console.log("Delete user:", user)
-    }, { size: 80 })
-  ]
-
   return (
-    <div className="space-y-8">
+    <div className="flex flex-col gap-6 pb-10">
+      <Card className="overflow-hidden border-primary/30 bg-gradient-to-r from-primary/10 via-card to-accent/15">
+        <CardHeader>
+          <Badge variant="secondary" className="w-fit rounded-full px-3 py-1 uppercase tracking-wide">
+            Hệ thống chấm điểm bài làm đề thi JLPT 
+          </Badge>
+          <CardTitle className="mt-2 text-3xl leading-tight">Hướng dẫn sử dụng hệ thống chấm điểm</CardTitle>
+          <CardDescription className="max-w-3xl text-sm sm:text-base">
+            Ứng dụng giúp bạn ước tính điểm thi thử JLPT theo từng mondai, theo dõi điểm thành phần,
+            và kiểm tra nhanh điều kiện đỗ theo mức tổng điểm và điểm liệt.
+          </CardDescription>
+        </CardHeader>
+      </Card>
 
-      {/* Cards Section */}
-      <section>
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-          <div className="rounded-lg border bg-card p-6 shadow-sm">
-            <h2 className="text-xl font-semibold mb-2 text-card-foreground">Total Users</h2>
-            <p className="text-2xl font-bold text-primary">{sampleUsers.length}</p>
-            <p className="text-sm text-muted-foreground">Active users in system</p>
-          </div>
-          <div className="rounded-lg border bg-card p-6 shadow-sm">
-            <h2 className="text-xl font-semibold mb-2 text-card-foreground">Active Users</h2>
-            <p className="text-2xl font-bold text-green-600">
-              {sampleUsers.filter(u => u.status === 'active').length}
-            </p>
-            <p className="text-sm text-muted-foreground">Currently online</p>
-          </div>
-          <div className="rounded-lg border bg-card p-6 shadow-sm">
-            <h2 className="text-xl font-semibold mb-2 text-card-foreground">Pending Users</h2>
-            <p className="text-2xl font-bold text-yellow-600">
-              {sampleUsers.filter(u => u.status === 'pending').length}
-            </p>
-            <p className="text-sm text-muted-foreground">Awaiting approval</p>
-          </div>
-        </div>
-      </section>
+      <Alert className="border-destructive/40 bg-destructive/5">
+        <CircleAlert />
+        <AlertTitle className="font-semibold text-destructive">LƯU Ý</AlertTitle>
+        <AlertDescription className="text-destructive/90">
+          Kết quả tính điểm này chỉ mang tính chất tham khảo tương đối, do đơn vị tổ chức JLPT
+          không công bố cách thức tính điểm chính thức. Có giời mới biết mấy thằng cha đấy tính như nào.
+        </AlertDescription>
+      </Alert>
 
-      {/* DataTable Section */}
-      <section>
-        <div className="rounded-lg border bg-card p-6 shadow-sm">
-          <h2 className="text-2xl font-semibold mb-4 text-card-foreground">User Management</h2>
-          <DataTable
-            columns={columns}
-            data={sampleUsers}
-            searchKey="name"
-            searchPlaceholder="Search users..."
-            onRowClick={(row) => console.log("Row clicked:", row.original)}
-          />
-        </div>
-      </section>
+      <div className="grid grid-cols-1 gap-5 lg:grid-cols-3">
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2 text-lg">
+              <ListChecks className="size-5" />
+              Luồng thao tác nhanh
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="flex flex-col gap-2 text-sm text-muted-foreground">
+            <p>1. Mở trang Chấm điểm JLPT và chọn cấp độ N1 - N5.</p>
+            <p>2. Nhập số câu đúng cho từng mondai.</p>
+            <p>3. Điều chỉnh trọng số nếu bạn muốn mô phỏng đề thi riêng.</p>
+            <p>4. Đọc điểm tổng, điểm section, kết quả đạt/không đạt.</p>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2 text-lg">
+              <Calculator className="size-5" />
+              Cách tính điểm ước tính
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="flex flex-col gap-2 text-sm text-muted-foreground">
+            <p>Điểm section = (điểm trọng số đạt được / điểm trọng số tối đa) x điểm tối đa section.</p>
+            <p>Tổng điểm = tổng điểm section, tối đa 180 điểm.</p>
+            <p>Kết quả đạt cần đồng thời qua ngưỡng tổng điểm và không vi phạm điểm liệt.</p>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2 text-lg">
+              <Radar className="size-5" />
+              Lưu ý khi điền kết quả
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="flex flex-col gap-2 text-sm text-muted-foreground">
+            <p>Số câu trong mondai có thể dao động nhẹ theo từng đợt thi thực tế.</p>
+            <p>Trọng số cao dành cho câu nhiều ngữ cảnh, độ dài, hoặc tổng hợp.</p>
+            <p>Nên dùng kết quả để điều chỉnh chiến lược ôn tập, không thay thế điểm JLPT chính thức.</p>
+          </CardContent>
+        </Card>
+      </div>
+
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2 text-lg">
+            <BookOpenCheck className="size-5" />
+            Cách đọc kết quả sau khi chấm
+          </CardTitle>
+          <CardDescription>
+            Ưu tiên xem trạng thái đỗ/trượt, sau đó kiểm tra section nào đang cần cải thiện.
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="flex flex-col gap-4 text-sm text-muted-foreground">
+          <div className="flex flex-col gap-2">
+            <p>
+              Nếu tổng điểm đã đạt nhưng vẫn trượt, lý do thường là vì chạm điểm liệt tại một section.
+              Bạn nên tập trung vào section đó trước khi tiếp tục nâng điểm tổng.
+            </p>
+            <p>
+              Hệ thống cho phép chỉnh trọng số để mô phỏng đề thi theo mức độ khó mà bạn đang luyện.
+              Có thể reset nhanh để quay về bộ trọng số mặc định.
+            </p>
+          </div>
+          <Separator />
+          <Alert className="border-primary/40 bg-primary/5">
+            <CircleAlert />
+            <AlertTitle>Lưu ý kết quả</AlertTitle>
+            <AlertDescription>
+              Lưu ý: Kết quả tính điểm này chỉ mang tính chất tham khảo tương đối, do đơn vị tổ chức JLPT
+              không công bố cách thức tính điểm chính thức.
+            </AlertDescription>
+          </Alert>
+        </CardContent>
+      </Card>
     </div>
   )
 }
