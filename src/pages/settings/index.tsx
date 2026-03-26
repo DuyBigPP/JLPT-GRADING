@@ -1,12 +1,14 @@
 import { ModeToggle } from "@/components/ui/mode-toggle"
 import { useTheme } from "@/components/ui/theme-provider"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { SEO } from "@/components/common/SEO"
 
 export default function SettingsPage() {
   const { theme } = useTheme()
 
   return (
     <div className="space-y-6">
+      <SEO title="Cài đặt" description="Tùy chỉnh giao diện ứng dụng chấm điểm JLPT." path="/settings" />
       <div>
         <h1 className="text-2xl font-bold">Settings</h1>
         <p className="text-muted-foreground">

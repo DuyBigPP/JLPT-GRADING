@@ -3,10 +3,16 @@ import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 import { Badge } from "@/components/ui/badge"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Separator } from "@/components/ui/separator"
+import { SEO } from "@/components/common/SEO"
 
 export default function DashboardPage() {
   return (
     <div className="flex flex-col gap-6 pb-10">
+      <SEO
+        title="Hướng dẫn sử dụng"
+        description="Hướng dẫn sử dụng hệ thống chấm điểm bài làm đề thi JLPT N1-N5. Cách nhập đáp án, đọc kết quả, và điều chỉnh trọng số."
+        path="/dashboard"
+      />
       <Card className="overflow-hidden border-primary/30 bg-gradient-to-r from-primary/10 via-card to-accent/15">
         <CardHeader>
           <Badge variant="secondary" className="w-fit rounded-full px-3 py-1 uppercase tracking-wide">
