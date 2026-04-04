@@ -12,7 +12,7 @@ export type MenuItem = {
 export const menuItems: MenuItem[] = [
   { label: "Trang chủ", path: "/dashboard", icon: <Home size={16} /> },
   { label: "Chấm điểm JLPT", path: "/grading", icon: <Calculator size={16} /> },
-  { label: "Settings", path: "/settings", icon: <Settings size={16} /> },
+  { label: "Cài đặt", path: "/settings", icon: <Settings size={16} /> },
 
   // {
   //   label: "Menu1",
