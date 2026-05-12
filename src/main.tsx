@@ -10,6 +10,6 @@ createRoot(document.getElementById('root')!).render(
     <HelmetProvider>
       <App />
     </HelmetProvider>
-    <Analytics />
+    <Analytics mode="production" />
   </StrictMode>,
 )
