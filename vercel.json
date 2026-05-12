@@ -5,13 +5,40 @@
       "source": "/:path*",
       "has": [
         {
-          "type": "header",
-          "key": "host",
+          "type": "host",
           "value": "www.jlptgrade.site"
         }
       ],
       "destination": "https://jlptgrade.site/:path*",
       "permanent": true
+    }
+  ],
+  "headers": [
+    {
+      "source": "/assets/(.*)",
+      "headers": [
+        {
+          "key": "Access-Control-Allow-Origin",
+          "value": "*"
+        },
+        {
+          "key": "Cross-Origin-Resource-Policy",
+          "value": "cross-origin"
+        }
+      ]
+    },
+    {
+      "source": "/favicon.webp",
+      "headers": [
+        {
+          "key": "Access-Control-Allow-Origin",
+          "value": "*"
+        },
+        {
+          "key": "Cross-Origin-Resource-Policy",
+          "value": "cross-origin"
+        }
+      ]
     }
   ],
   "rewrites": [
