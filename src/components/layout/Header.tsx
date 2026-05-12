@@ -15,7 +15,7 @@ export function BreadcrumbHeader() {
   const breadcrumbs = generateBreadcrumbs(location.pathname)
 
   return (
-    <header className="flex h-14 items-center bg-background px-4 lg:px-6 border-b border-border shrink-0">
+    <header className="sticky top-0 z-40 flex h-14 shrink-0 items-center border-b border-border bg-background/95 px-4 backdrop-blur lg:px-6">
       <div className="flex h-full items-center gap-3">
         <SidebarTrigger />
         <div data-orientation="vertical" className="shrink-0 bg-border w-[1px] h-4"></div>

@@ -8,17 +8,25 @@ import {
   SidebarMenuItem,
   SidebarMenuButton,
   SidebarRail,
+  useSidebar,
 } from "@/components/ui/sidebar"
 import { menuItems } from "@/config/menu"
 import { LucideLayoutDashboard, ChevronRight } from "lucide-react"
 
 export function AdminSidebar() {
   const location = useLocation()
+  const { isMobile, setOpenMobile } = useSidebar()
   // State to control which menu with children is open 
   const [openSubmenu, setOpenSubmenu] = React.useState<string | null>(null)
 
   const toggleSubmenu = (path: string) => {
     setOpenSubmenu((prev) => (prev === path ? null : path))
+  }
+
+  const closeMobileSidebar = () => {
+    if (isMobile) {
+      setOpenMobile(false)
+    }
   }
 
   return (
@@ -72,7 +80,7 @@ export function AdminSidebar() {
                               tooltip={child.label}
                               className="transition-colors hover:bg-accent hover:text-accent-foreground data-[active=true]:bg-accent/50 data-[active=true]:font-medium text-sm"
                             >
-                              <Link to={child.path}>
+                              <Link to={child.path} onClick={closeMobileSidebar}>
                                 {child.icon}
                                 <span>{child.label}</span>
                               </Link>
@@ -93,7 +101,7 @@ export function AdminSidebar() {
                   tooltip={item.label}
                   className="transition-colors hover:bg-accent hover:text-accent-foreground data-[active=true]:bg-accent/50 data-[active=true]:font-medium"
                 >
-                  <Link to={item.path}>
+                  <Link to={item.path} onClick={closeMobileSidebar}>
                     {item.icon}
                     <span>{item.label}</span>
                   </Link>
