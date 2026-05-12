@@ -1,7 +1,7 @@
 import { Helmet } from "react-helmet-async"
 
 const SITE_NAME = "Chấm điểm JLPT"
-const BASE_URL = "https://jlpt-grading.vercel.app"
+const BASE_URL = "https://jlptgrade.site"
 const DEFAULT_DESCRIPTION =
   "Ứng dụng chấm điểm bài làm đề thi JLPT N1-N5. Tính điểm ước tính theo từng mondai, kiểm tra điều kiện đỗ và điểm liệt. Miễn phí, không cần đăng nhập."
 const DEFAULT_IMAGE = `${BASE_URL}/og-image.png`
@@ -11,6 +11,7 @@ interface SEOProps {
   description?: string
   path?: string
   image?: string
+  noIndex?: boolean
 }
 
 export function SEO({
@@ -18,6 +19,7 @@ export function SEO({
   description = DEFAULT_DESCRIPTION,
   path = "/",
   image = DEFAULT_IMAGE,
+  noIndex = false,
 }: SEOProps) {
   const fullTitle = title ? `${title} | ${SITE_NAME}` : SITE_NAME
   const canonicalUrl = `${BASE_URL}${path}`
@@ -26,6 +28,7 @@ export function SEO({
     <Helmet>
       <title>{fullTitle}</title>
       <meta name="description" content={description} />
+      <meta name="robots" content={noIndex ? "noindex,follow" : "index,follow"} />
       <link rel="canonical" href={canonicalUrl} />
 
       <meta property="og:title" content={fullTitle} />

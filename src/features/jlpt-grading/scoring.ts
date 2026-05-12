@@ -10,6 +10,9 @@ const round2 = (value: number) => Math.round(value * 100) / 100
 
 const clamp = (value: number, min: number, max: number) => Math.max(min, Math.min(max, value))
 
+const toNumber = (value: number | "", fallback: number) =>
+  typeof value === "number" && Number.isFinite(value) ? value : fallback
+
 const getQuestionCountRange = (questionCount: number) => ({
   min: Math.max(1, questionCount - 1),
   max: questionCount + 1,
@@ -38,12 +41,15 @@ function getSafeInput(mondai: MondaiConfig, inputs: GradingInputState) {
   }
 
   const questionCountRange = getQuestionCountRange(mondai.questionCount)
-  const safeQuestionCount = clamp(input.questionCount || mondai.questionCount, questionCountRange.min, questionCountRange.max)
+  const questionCount = toNumber(input.questionCount, mondai.questionCount)
+  const correctCount = toNumber(input.correctCount, 0)
+  const weight = toNumber(input.weight, mondai.defaultWeight)
+  const safeQuestionCount = clamp(questionCount || mondai.questionCount, questionCountRange.min, questionCountRange.max)
 
   return {
     questionCount: safeQuestionCount,
-    correctCount: clamp(input.correctCount || 0, 0, safeQuestionCount),
-    weight: clamp(input.weight || mondai.defaultWeight, 0.1, 10),
+    correctCount: clamp(correctCount || 0, 0, safeQuestionCount),
+    weight: clamp(weight || mondai.defaultWeight, 0.1, 10),
   }
 }
 

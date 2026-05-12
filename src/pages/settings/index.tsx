@@ -13,7 +13,7 @@ export default function SettingsPage() {
 
   return (
     <div className="space-y-6">
-      <SEO title="Cài đặt" description="Tùy chỉnh giao diện ứng dụng chấm điểm JLPT." path="/settings" />
+      <SEO title="Cài đặt" description="Tùy chỉnh giao diện ứng dụng chấm điểm JLPT." path="/settings" noIndex />
       <div>
         <h1 className="text-2xl font-bold">Cài đặt</h1>
       </div>

@@ -52,9 +52,9 @@ export type LevelConfig = {
 }
 
 export type MondaiInput = {
-  correctCount: number
-  questionCount: number
-  weight: number
+  correctCount: number | ""
+  questionCount: number | ""
+  weight: number | ""
 }
 
 export type GradingInputState = Record<string, MondaiInput>

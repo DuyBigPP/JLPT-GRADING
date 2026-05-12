@@ -69,6 +69,15 @@ const getWeightError = (value: number) => {
   return ""
 }
 
+const parseNumberInput = (value: string) => {
+  if (value === "") {
+    return ""
+  }
+
+  const parsed = Number(value)
+  return Number.isNaN(parsed) ? "" : parsed
+}
+
 export function GradingCalculator() {
   const [level, setLevel] = useState<JlptLevel>("N1")
   const levelConfig = jlptConfigs[level]
@@ -85,9 +94,11 @@ export function GradingCalculator() {
     () =>
       new Set(
         levelConfig.mondai.filter((mondai) => {
-          const questionCount = inputs[mondai.id]?.questionCount ?? mondai.questionCount
-          const hasQuestionCountError = Boolean(getQuestionCountError(mondai, questionCount))
-          const hasCorrectCountError = Boolean(getCountError(inputs[mondai.id]?.correctCount ?? 0, questionCount))
+          const correctCount = inputs[mondai.id]?.correctCount ?? 0
+          const questionCountInput = inputs[mondai.id]?.questionCount ?? mondai.questionCount
+          const questionCount = questionCountInput === "" ? mondai.questionCount : questionCountInput
+          const hasQuestionCountError = questionCountInput === "" ? false : Boolean(getQuestionCountError(mondai, questionCount))
+          const hasCorrectCountError = correctCount === "" ? false : Boolean(getCountError(correctCount, questionCount))
           return hasQuestionCountError || hasCorrectCountError
         }).map((mondai) => mondai.id)
       ),
@@ -98,7 +109,10 @@ export function GradingCalculator() {
     () =>
       new Set(
         levelConfig.mondai
-          .filter((mondai) => Boolean(getWeightError(inputs[mondai.id]?.weight ?? mondai.defaultWeight)))
+          .filter((mondai) => {
+            const weight = inputs[mondai.id]?.weight ?? mondai.defaultWeight
+            return weight === "" ? false : Boolean(getWeightError(weight))
+          })
           .map((mondai) => mondai.id)
       ),
     [levelConfig.mondai, inputs]
@@ -107,42 +121,84 @@ export function GradingCalculator() {
   const hasValidationIssue = invalidCountIds.size > 0 || invalidWeightIds.size > 0
 
   const updateCorrectCount = (mondaiId: string, nextValue: string) => {
-    const parsed = Number(nextValue)
-    const value = Number.isNaN(parsed) ? 0 : parsed
-
     setInputs((previous) => ({
       ...previous,
       [mondaiId]: {
         ...previous[mondaiId],
-        correctCount: value,
+        correctCount: parseNumberInput(nextValue),
       },
     }))
   }
 
   const updateQuestionCount = (mondaiId: string, nextValue: string) => {
-    const parsed = Number(nextValue)
-    const value = Number.isNaN(parsed) ? 0 : parsed
-
     setInputs((previous) => ({
       ...previous,
       [mondaiId]: {
         ...previous[mondaiId],
-        questionCount: value,
+        questionCount: parseNumberInput(nextValue),
       },
     }))
   }
 
   const updateWeight = (mondaiId: string, nextValue: string) => {
-    const parsed = Number(nextValue)
-    const value = Number.isNaN(parsed) ? 0 : parsed
-
     setInputs((previous) => ({
       ...previous,
       [mondaiId]: {
         ...previous[mondaiId],
-        weight: value,
+        weight: parseNumberInput(nextValue),
       },
     }))
+  }
+
+  const restoreEmptyInput = (mondai: MondaiConfig, field: keyof GradingInputState[string]) => {
+    setInputs((previous) => {
+      const currentInput = previous[mondai.id]
+
+      if (!currentInput || currentInput[field] !== "") {
+        return previous
+      }
+
+      const fallbackValues = {
+        correctCount: 0,
+        questionCount: mondai.questionCount,
+        weight: mondai.defaultWeight,
+      }
+
+      return {
+        ...previous,
+        [mondai.id]: {
+          ...currentInput,
+          [field]: fallbackValues[field],
+        },
+      }
+    })
+  }
+
+  const clearDefaultInput = (mondai: MondaiConfig, field: keyof GradingInputState[string]) => {
+    setInputs((previous) => {
+      const currentInput = previous[mondai.id]
+      if (!currentInput) {
+        return previous
+      }
+
+      const defaultValues = {
+        correctCount: 0,
+        questionCount: mondai.questionCount,
+        weight: mondai.defaultWeight,
+      }
+
+      if (currentInput[field] !== defaultValues[field]) {
+        return previous
+      }
+
+      return {
+        ...previous,
+        [mondai.id]: {
+          ...currentInput,
+          [field]: "",
+        },
+      }
+    })
   }
 
   const resetWeights = () => {
@@ -234,11 +290,14 @@ export function GradingCalculator() {
                   <TableBody>
                     {sectionMondai.map((mondai) => {
                       const currentInput = inputs[mondai.id]
-                      const questionCount = currentInput?.questionCount ?? mondai.questionCount
+                      const correctCount = currentInput?.correctCount ?? 0
+                      const questionCountInput = currentInput?.questionCount ?? mondai.questionCount
+                      const weight = currentInput?.weight ?? mondai.defaultWeight
+                      const questionCount = questionCountInput === "" ? mondai.questionCount : questionCountInput
                       const questionCountRange = getQuestionCountRange(mondai)
-                      const questionCountError = getQuestionCountError(mondai, questionCount)
-                      const countError = getCountError(currentInput?.correctCount ?? 0, questionCount)
-                      const weightError = getWeightError(currentInput?.weight ?? mondai.defaultWeight)
+                      const questionCountError = questionCountInput === "" ? "" : getQuestionCountError(mondai, questionCount)
+                      const countError = correctCount === "" ? "" : getCountError(correctCount, questionCount)
+                      const weightError = weight === "" ? "" : getWeightError(weight)
 
                       return (
                         <TableRow key={mondai.id}>
@@ -253,9 +312,11 @@ export function GradingCalculator() {
                               type="number"
                               min={0}
                               max={questionCount}
-                              value={currentInput?.correctCount ?? 0}
+                              value={correctCount}
                               aria-invalid={Boolean(countError)}
+                              onFocus={() => clearDefaultInput(mondai, "correctCount")}
                               onChange={(event) => updateCorrectCount(mondai.id, event.target.value)}
+                              onBlur={() => restoreEmptyInput(mondai, "correctCount")}
                             />
                             {countError ? (
                               <p className="mt-1 text-xs text-destructive">{countError}</p>
@@ -266,9 +327,11 @@ export function GradingCalculator() {
                               type="number"
                               min={questionCountRange.min}
                               max={questionCountRange.max}
-                              value={questionCount}
+                              value={questionCountInput}
                               aria-invalid={Boolean(questionCountError)}
+                              onFocus={() => clearDefaultInput(mondai, "questionCount")}
                               onChange={(event) => updateQuestionCount(mondai.id, event.target.value)}
+                              onBlur={() => restoreEmptyInput(mondai, "questionCount")}
                             />
                             <p className="text-muted-foreground mt-1 text-xs">
                               Chuẩn: {mondai.questionCount} (cho phép {questionCountRange.min} - {questionCountRange.max})
@@ -283,9 +346,11 @@ export function GradingCalculator() {
                               step="0.1"
                               min={0.1}
                               max={10}
-                              value={currentInput?.weight ?? mondai.defaultWeight}
+                              value={weight}
                               aria-invalid={Boolean(weightError)}
+                              onFocus={() => clearDefaultInput(mondai, "weight")}
                               onChange={(event) => updateWeight(mondai.id, event.target.value)}
+                              onBlur={() => restoreEmptyInput(mondai, "weight")}
                             />
                             {weightError ? (
                               <p className="mt-1 text-xs text-destructive">{weightError}</p>
