@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from "react"
+import { useTranslation } from "react-i18next"
 import { AlertTriangle, CheckCircle2, Gauge, RotateCcw, Scale } from "lucide-react"
 import { jlptConfigs, jlptLevels } from "@/features/jlpt-grading/config"
 import { calculateEstimatedScore, createInitialInputs } from "@/features/jlpt-grading/scoring"
@@ -31,44 +32,6 @@ const getQuestionCountRange = (mondai: MondaiConfig) => ({
   max: mondai.questionCount + 1,
 })
 
-const getQuestionCountError = (mondai: MondaiConfig, value: number) => {
-  const range = getQuestionCountRange(mondai)
-
-  if (value < range.min) {
-    return `Không được nhỏ hơn ${range.min}`
-  }
-
-  if (value > range.max) {
-    return `Không được lớn hơn ${range.max}`
-  }
-
-  return ""
-}
-
-const getCountError = (value: number, adjustedQuestionCount: number) => {
-  if (value < 0) {
-    return "Không được nhỏ hơn 0"
-  }
-
-  if (value > adjustedQuestionCount) {
-    return `Vượt quá số câu tối đa (${adjustedQuestionCount})`
-  }
-
-  return ""
-}
-
-const getWeightError = (value: number) => {
-  if (value <= 0) {
-    return "Trọng số phải lớn hơn 0"
-  }
-
-  if (value > 10) {
-    return "Trọng số quá cao (tối đa 10)"
-  }
-
-  return ""
-}
-
 const parseNumberInput = (value: string) => {
   if (value === "") {
     return ""
@@ -78,7 +41,41 @@ const parseNumberInput = (value: string) => {
   return Number.isNaN(parsed) ? "" : parsed
 }
 
+type TFn = (key: string, options?: Record<string, unknown>) => string
+
+const getQuestionCountError = (t: TFn, mondai: MondaiConfig, value: number) => {
+  const range = getQuestionCountRange(mondai)
+  if (value < range.min) {
+    return t("grading.errorMinQuestionCount", { min: range.min })
+  }
+  if (value > range.max) {
+    return t("grading.errorMaxQuestionCount", { max: range.max })
+  }
+  return ""
+}
+
+const getCountError = (t: TFn, value: number, adjustedQuestionCount: number) => {
+  if (value < 0) {
+    return t("grading.errorMinCorrectCount")
+  }
+  if (value > adjustedQuestionCount) {
+    return t("grading.errorMaxCorrectCount", { max: adjustedQuestionCount })
+  }
+  return ""
+}
+
+const getWeightError = (t: TFn, value: number) => {
+  if (value <= 0) {
+    return t("grading.errorWeightMin")
+  }
+  if (value > 10) {
+    return t("grading.errorWeightMax")
+  }
+  return ""
+}
+
 export function GradingCalculator() {
+  const { t } = useTranslation()
   const [level, setLevel] = useState<JlptLevel>("N1")
   const levelConfig = jlptConfigs[level]
 
@@ -97,12 +94,12 @@ export function GradingCalculator() {
           const correctCount = inputs[mondai.id]?.correctCount ?? 0
           const questionCountInput = inputs[mondai.id]?.questionCount ?? mondai.questionCount
           const questionCount = questionCountInput === "" ? mondai.questionCount : questionCountInput
-          const hasQuestionCountError = questionCountInput === "" ? false : Boolean(getQuestionCountError(mondai, questionCount))
-          const hasCorrectCountError = correctCount === "" ? false : Boolean(getCountError(correctCount, questionCount))
+          const hasQuestionCountError = questionCountInput === "" ? false : Boolean(getQuestionCountError(t, mondai, questionCount))
+          const hasCorrectCountError = correctCount === "" ? false : Boolean(getCountError(t, correctCount, questionCount))
           return hasQuestionCountError || hasCorrectCountError
         }).map((mondai) => mondai.id)
       ),
-    [levelConfig.mondai, inputs]
+    [levelConfig.mondai, inputs, t]
   )
 
   const invalidWeightIds = useMemo(
@@ -111,11 +108,11 @@ export function GradingCalculator() {
         levelConfig.mondai
           .filter((mondai) => {
             const weight = inputs[mondai.id]?.weight ?? mondai.defaultWeight
-            return weight === "" ? false : Boolean(getWeightError(weight))
+            return weight === "" ? false : Boolean(getWeightError(t, weight))
           })
           .map((mondai) => mondai.id)
       ),
-    [levelConfig.mondai, inputs]
+    [levelConfig.mondai, inputs, t]
   )
 
   const hasValidationIssue = invalidCountIds.size > 0 || invalidWeightIds.size > 0
@@ -220,18 +217,17 @@ export function GradingCalculator() {
         <CardHeader className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
           <div className="space-y-2">
             <Badge variant="secondary" className="rounded-full px-3 py-1 text-xs tracking-wide uppercase">
-              Công cụ chấm điểm thi thử JLPT
+              {t("grading.badge")}
             </Badge>
             <CardTitle className="text-2xl leading-tight sm:text-3xl">
-              Tính điểm ước tính theo từng mondai
+              {t("grading.title")}
             </CardTitle>
             <CardDescription className="max-w-3xl text-sm sm:text-base">
-              Chọn cấp độ, nhập số câu đúng, tùy chỉnh trọng số để mô phỏng đề thi. Kết quả hiển thị theo
-              mức tham khảo và điều kiện điểm liệt.
+              {t("grading.description")}
             </CardDescription>
           </div>
           <div className="flex flex-col items-start gap-3">
-            <p className="text-sm font-medium">Cấp độ thi</p>
+            <p className="text-sm font-medium">{t("grading.examLevel")}</p>
             <ToggleGroup
               type="single"
               value={level}
@@ -256,15 +252,14 @@ export function GradingCalculator() {
       <Card>
         <CardHeader className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <div className="space-y-1">
-            <CardTitle className="text-xl">Bảng nhập đáp án đúng - {levelConfig.title}</CardTitle>
+            <CardTitle className="text-xl">{t("grading.inputTableTitle", { level: levelConfig.title })}</CardTitle>
             <CardDescription>
-              Mỗi mondai có thể điều chỉnh tổng số câu trong biên ±1 để bám sát đề thực tế. Có thể reset
-              nhanh trọng số về giá trị mặc định.
+              {t("grading.inputTableDescription")}
             </CardDescription>
           </div>
           <Button variant="outline" onClick={resetWeights}>
             <RotateCcw data-icon="inline-start" />
-            Reset trọng số
+            {t("grading.resetWeights")}
           </Button>
         </CardHeader>
         <CardContent className="flex flex-col gap-6">
@@ -274,17 +269,17 @@ export function GradingCalculator() {
             return (
               <div key={section.id} className="flex flex-col gap-4 rounded-lg border border-border/60 p-4">
                 <div className="flex flex-wrap items-center gap-3">
-                  <h3 className="text-base font-semibold">{section.title}</h3>
-                  <Badge variant="outline">Tối đa {section.maxScore} điểm</Badge>
+                  <h3 className="text-base font-semibold">{t(section.titleKey)}</h3>
+                  <Badge variant="outline">{t("grading.maxScore", { score: section.maxScore })}</Badge>
                 </div>
                 <Table>
                   <TableHeader>
                     <TableRow>
-                      <TableHead className="w-[34%]">Mondai</TableHead>
-                      <TableHead className="w-[14%]">Số câu đúng</TableHead>
-                      <TableHead className="w-[14%]">Tổng câu</TableHead>
-                      <TableHead className="w-[20%]">Trọng số</TableHead>
-                      <TableHead className="w-[18%]">Khoảng gợi ý</TableHead>
+                      <TableHead className="w-[34%]">{t("grading.colMondai")}</TableHead>
+                      <TableHead className="w-[14%]">{t("grading.colCorrectCount")}</TableHead>
+                      <TableHead className="w-[14%]">{t("grading.colTotalQuestions")}</TableHead>
+                      <TableHead className="w-[20%]">{t("grading.colWeight")}</TableHead>
+                      <TableHead className="w-[18%]">{t("grading.colSuggestedRange")}</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
@@ -295,16 +290,16 @@ export function GradingCalculator() {
                       const weight = currentInput?.weight ?? mondai.defaultWeight
                       const questionCount = questionCountInput === "" ? mondai.questionCount : questionCountInput
                       const questionCountRange = getQuestionCountRange(mondai)
-                      const questionCountError = questionCountInput === "" ? "" : getQuestionCountError(mondai, questionCount)
-                      const countError = correctCount === "" ? "" : getCountError(correctCount, questionCount)
-                      const weightError = weight === "" ? "" : getWeightError(weight)
+                      const questionCountError = questionCountInput === "" ? "" : getQuestionCountError(t, mondai, questionCount)
+                      const countError = correctCount === "" ? "" : getCountError(t, correctCount, questionCount)
+                      const weightError = weight === "" ? "" : getWeightError(t, weight)
 
                       return (
                         <TableRow key={mondai.id}>
                           <TableCell className="align-top">
                             <div className="flex flex-col gap-1">
                               <p className="font-medium">{mondai.code}</p>
-                              <p className="text-muted-foreground text-xs">{mondai.title}</p>
+                              <p className="text-muted-foreground text-xs">{t(mondai.titleKey)}</p>
                             </div>
                           </TableCell>
                           <TableCell className="align-top">
@@ -334,7 +329,7 @@ export function GradingCalculator() {
                               onBlur={() => restoreEmptyInput(mondai, "questionCount")}
                             />
                             <p className="text-muted-foreground mt-1 text-xs">
-                              Chuẩn: {mondai.questionCount} (cho phép {questionCountRange.min} - {questionCountRange.max})
+                              {t("grading.standard", { count: mondai.questionCount, min: questionCountRange.min, max: questionCountRange.max })}
                             </p>
                             {questionCountError ? (
                               <p className="mt-1 text-xs text-destructive">{questionCountError}</p>
@@ -369,9 +364,9 @@ export function GradingCalculator() {
           })}
 
           <div className="text-muted-foreground text-xs">
-            Công thức sử dụng:
+            {t("grading.formulaLabel")}
             <span className="ml-1 font-medium text-foreground">
-              điểm section = (tổng điểm trọng số đạt được / tổng điểm trọng số tối đa) x điểm tối đa section.
+              {t("grading.formulaText")}
             </span>
           </div>
         </CardContent>
@@ -381,37 +376,37 @@ export function GradingCalculator() {
         <CardHeader>
           <CardTitle className="flex items-center gap-2 text-xl">
             <Gauge className="size-5" />
-            Kết quả ước tính
+            {t("grading.resultsTitle")}
           </CardTitle>
           <CardDescription>
-            Điểm tổng và điều kiện đỗ được tính lại theo thời gian thực sau mỗi lần thay đổi dữ liệu.
+            {t("grading.resultsDescription")}
           </CardDescription>
         </CardHeader>
         <CardContent className="flex flex-col gap-6">
           <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
             <div className="rounded-lg border border-border/70 bg-card p-4">
-              <p className="text-muted-foreground text-sm">Tổng điểm ước tính</p>
+              <p className="text-muted-foreground text-sm">{t("grading.totalEstimated")}</p>
               <p className="mt-2 text-3xl font-semibold">{formatScore(result.totalEstimatedScore)}</p>
-              <p className="text-muted-foreground mt-1 text-sm">/ {result.totalMaxScore} điểm</p>
+              <p className="text-muted-foreground mt-1 text-sm">{t("grading.totalPoints", { score: result.totalMaxScore })}</p>
             </div>
             <div className="rounded-lg border border-border/70 bg-card p-4">
-              <p className="text-muted-foreground text-sm">Ngưỡng đỗ</p>
+              <p className="text-muted-foreground text-sm">{t("grading.passThreshold")}</p>
               <p className="mt-2 text-3xl font-semibold">{result.totalPassScore}</p>
-              <p className="text-muted-foreground mt-1 text-sm">điểm trở lên</p>
+              <p className="text-muted-foreground mt-1 text-sm">{t("grading.pointsAndAbove")}</p>
             </div>
             <div className="rounded-lg border border-border/70 bg-card p-4">
-              <p className="text-muted-foreground text-sm">Kết luận</p>
+              <p className="text-muted-foreground text-sm">{t("grading.conclusion")}</p>
               <div className="mt-2 flex items-center gap-2">
                 {result.pass && !hasValidationIssue ? (
                   <>
                     <CheckCircle2 className="size-5 text-primary" />
-                    <Badge className="text-sm">Đủ điều kiện đỗ</Badge>
+                    <Badge className="text-sm">{t("grading.pass")}</Badge>
                   </>
                 ) : (
                   <>
                     <AlertTriangle className="size-5 text-destructive" />
                     <Badge variant="destructive" className="text-sm">
-                      Chưa đủ điều kiện
+                      {t("grading.fail")}
                     </Badge>
                   </>
                 )}
@@ -429,18 +424,18 @@ export function GradingCalculator() {
               return (
                 <div key={section.sectionId} className="rounded-lg border border-border/70 p-4">
                   <div className="flex items-center justify-between gap-3">
-                    <p className="text-sm font-medium">{section.title}</p>
+                    <p className="text-sm font-medium">{t(section.titleKey)}</p>
                     <Badge variant={failed ? "destructive" : "secondary"}>
                       {formatScore(section.normalizedScore)} / {section.maxScore}
                     </Badge>
                   </div>
                   {minRule ? (
                     <p className="text-muted-foreground mt-2 text-xs">
-                      Điểm liệt: {minRule.minScore}/{minRule.maxScore}
+                      {t("grading.minScore", { min: minRule.minScore, max: minRule.maxScore })}
                     </p>
                   ) : null}
                   <p className="text-muted-foreground mt-2 text-xs">
-                    Ước tính: {section.rawWeightedEarned} / {section.rawWeightedMax}
+                    {t("grading.estimated", { earned: section.rawWeightedEarned, max: section.rawWeightedMax })}
                   </p>
                 </div>
               )
@@ -449,7 +444,7 @@ export function GradingCalculator() {
 
           {hasValidationIssue ? (
             <div className="rounded-lg border border-destructive/50 bg-destructive/5 p-4 text-sm">
-              Có input đang không hợp lệ. Kết quả hiện tại đã được tính với giá trị giới hạn an toàn để tránh sai lệch.
+              {t("grading.validationWarning")}
             </div>
           ) : null}
 
@@ -457,14 +452,14 @@ export function GradingCalculator() {
             <div className="rounded-lg border border-destructive/50 bg-destructive/5 p-4 text-sm">
               <p className="mb-2 flex items-center gap-2 font-medium text-destructive">
                 <Scale className="size-4" />
-                Không đạt điều kiện điểm liệt
+                {t("grading.sectionFailTitle")}
               </p>
               <ul className="flex list-disc flex-col gap-1 pl-5 text-destructive/90">
                 {result.sectionFailures.map((failure) => {
                   const section = result.sectionResults.find((item) => item.sectionId === failure.sectionId)
                   return (
                     <li key={failure.sectionId}>
-                      {section?.title}: {formatScore(failure.currentScore)} {"<"} {failure.minScore}
+                      {section ? t(section.titleKey) : ""}: {formatScore(failure.currentScore)} {"<"} {failure.minScore}
                     </li>
                   )
                 })}

@@ -27,7 +27,7 @@ export type WeightRange = {
 export type MondaiConfig = {
   id: string
   code: string
-  title: string
+  titleKey: string
   questionCount: number
   category: MondaiCategory
   sectionId: ScoreSectionId
@@ -37,7 +37,7 @@ export type MondaiConfig = {
 
 export type ScoreSectionConfig = {
   id: ScoreSectionId
-  title: string
+  titleKey: string
   maxScore: number
 }
 
@@ -67,7 +67,7 @@ export type MondaiScoreResult = {
 
 export type SectionScoreResult = {
   sectionId: ScoreSectionId
-  title: string
+  titleKey: string
   rawWeightedEarned: number
   rawWeightedMax: number
   normalizedScore: number

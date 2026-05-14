@@ -1,5 +1,6 @@
 import React from "react"
 import { useLocation, Link } from "react-router-dom"
+import { useTranslation } from "react-i18next"
 import {
   Sidebar,
   SidebarContent,
@@ -9,14 +10,15 @@ import {
   SidebarMenuButton,
   SidebarRail,
   useSidebar,
+  SidebarFooter
 } from "@/components/ui/sidebar"
 import { menuItems } from "@/config/menu"
 import { LucideLayoutDashboard, ChevronRight } from "lucide-react"
 
 export function AdminSidebar() {
+  const { t } = useTranslation()
   const location = useLocation()
   const { isMobile, setOpenMobile } = useSidebar()
-  // State to control which menu with children is open 
   const [openSubmenu, setOpenSubmenu] = React.useState<string | null>(null)
 
   const toggleSubmenu = (path: string) => {
@@ -42,11 +44,10 @@ export function AdminSidebar() {
             <LucideLayoutDashboard className="h-4 w-4" />
           </div>
           <div className="flex flex-col">
-            <span className="text-sm font-semibold">Chấm điểm JLPT</span>
+            <span className="text-sm font-semibold">{t("sidebar.title")}</span>
           </div>
         </div>
       </SidebarHeader>
-      {/* <SidebarSeparator /> */}
       <SidebarContent className="p-2">
         <SidebarMenu>
           {menuItems.map((item) => {
@@ -56,14 +57,13 @@ export function AdminSidebar() {
                   <div>
                     <SidebarMenuButton
                       onClick={() => toggleSubmenu(item.path)}
-                      // Check if pathname starts with this item's path (to include children)
                       isActive={location.pathname.startsWith(item.path)}
-                      tooltip={item.label}
+                      tooltip={t(item.labelKey)}
                       className="flex justify-between items-center transition-colors hover:bg-accent hover:text-accent-foreground data-[active=true]:bg-accent/50 data-[active=true]:font-medium"
                     >
                       <div className="flex items-center gap-2">
                         {item.icon}
-                        <span>{item.label}</span>
+                        <span>{t(item.labelKey)}</span>
                       </div>
                       <ChevronRight
                         size={16}
@@ -77,12 +77,12 @@ export function AdminSidebar() {
                             <SidebarMenuButton
                               asChild
                               isActive={location.pathname === child.path}
-                              tooltip={child.label}
+                              tooltip={t(child.labelKey)}
                               className="transition-colors hover:bg-accent hover:text-accent-foreground data-[active=true]:bg-accent/50 data-[active=true]:font-medium text-sm"
                             >
                               <Link to={child.path} onClick={closeMobileSidebar}>
                                 {child.icon}
-                                <span>{child.label}</span>
+                                <span>{t(child.labelKey)}</span>
                               </Link>
                             </SidebarMenuButton>
                           </li>
@@ -98,12 +98,12 @@ export function AdminSidebar() {
                 <SidebarMenuButton
                   asChild
                   isActive={location.pathname === item.path}
-                  tooltip={item.label}
+                  tooltip={t(item.labelKey)}
                   className="transition-colors hover:bg-accent hover:text-accent-foreground data-[active=true]:bg-accent/50 data-[active=true]:font-medium"
                 >
                   <Link to={item.path} onClick={closeMobileSidebar}>
                     {item.icon}
-                    <span>{item.label}</span>
+                    <span>{t(item.labelKey)}</span>
                   </Link>
                 </SidebarMenuButton>
               </SidebarMenuItem>
@@ -111,18 +111,11 @@ export function AdminSidebar() {
           })}
         </SidebarMenu>
       </SidebarContent>
-      {/* <SidebarFooter className="mt-auto border-t border-border p-4">
-        <div className="flex items-center gap-2">
-          <Avatar className="h-8 w-8">
-            <AvatarImage src="/placeholder.svg?height=32&width=32" alt="User" />
-            <AvatarFallback>U</AvatarFallback>
-          </Avatar>
-          <div className="flex flex-col">
-            <span className="text-sm font-medium">Admin User</span>
-            <span className="text-xs text-muted-foreground">admin@example.com</span>
-          </div>
+      <SidebarFooter className="mt-auto border-t border-border p-4">
+        <div className="flex items-center justify-center">
+          <span className="text-xs text-muted-foreground">Made with <b>恋</b> by ZuyBigPP</span>
         </div>
-      </SidebarFooter> */}
+      </SidebarFooter>
       <SidebarRail />
     </Sidebar>
   )

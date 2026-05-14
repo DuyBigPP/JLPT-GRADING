@@ -84,7 +84,7 @@ export function calculateEstimatedScore(levelConfig: LevelConfig, inputs: Gradin
 
     return {
       sectionId: section.id,
-      title: section.title,
+      titleKey: section.titleKey,
       rawWeightedEarned: round2(rawWeightedEarned),
       rawWeightedMax: round2(rawWeightedMax),
       normalizedScore: round2(normalizedScore),

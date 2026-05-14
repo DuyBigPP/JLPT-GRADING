@@ -1,6 +1,7 @@
 import type React from "react"
 import { useLocation, Link } from "react-router-dom"
-import { ChevronRight} from "lucide-react"
+import { useTranslation } from "react-i18next"
+import { ChevronRight } from "lucide-react"
 import { SidebarTrigger } from "@/components/ui/sidebar"
 import { menuItems } from "@/config/menu"
 
@@ -11,8 +12,9 @@ interface BreadcrumbItem {
 }
 
 export function BreadcrumbHeader() {
+  const { t } = useTranslation()
   const location = useLocation()
-  const breadcrumbs = generateBreadcrumbs(location.pathname)
+  const breadcrumbs = generateBreadcrumbs(location.pathname, t)
 
   return (
     <header className="sticky top-0 z-40 flex h-14 shrink-0 items-center border-b border-border bg-background/95 px-4 backdrop-blur lg:px-6">
@@ -22,16 +24,6 @@ export function BreadcrumbHeader() {
 
         <nav className="flex items-center text-sm">
           <ol className="flex items-center gap-1">
-            {/* <li>
-              <Link
-                to="/"
-                className="flex h-9 items-center gap-1.5 rounded-md px-2 text-muted-foreground transition-colors hover:text-foreground"
-              >
-                <Home className="h-4 w-4" />
-                <span className="sr-only sm:not-sr-only sm:inline">Home</span>
-              </Link>
-            </li> */}
-
             {breadcrumbs.map((item, index) => (
               <li key={item.path} className="flex items-center gap-1">
                 <ChevronRight className="h-4 w-4 text-muted-foreground" />
@@ -58,40 +50,31 @@ export function BreadcrumbHeader() {
   )
 }
 
-function generateBreadcrumbs(pathname: string): BreadcrumbItem[] {
-  // Split the pathname into segments
+function generateBreadcrumbs(pathname: string, t: (key: string) => string): BreadcrumbItem[] {
   const paths = pathname.split("/").filter(Boolean)
   if (paths.length === 0) return []
 
   const breadcrumbs: BreadcrumbItem[] = []
   let currentPath = ""
-  
-  // Lưu trữ đường dẫn đã xử lý để tránh lặp lại item
   const processedPaths = new Set<string>()
 
   paths.forEach((segment) => {
     currentPath += `/${segment}`
-    
-    // Bỏ qua nếu đường dẫn này đã được xử lý
+
     if (processedPaths.has(currentPath)) {
       return
     }
-    
-    // Đánh dấu đường dẫn đã được xử lý
+
     processedPaths.add(currentPath)
 
-    // Find matching menu item
     const menuItem = findMenuItemByPath(currentPath)
     if (menuItem) {
-      // Nếu đây là menu cha có children, thêm vào với đúng đường dẫn của nó
-      // mà không tự động chuyển hướng đến submenu đầu tiên
       breadcrumbs.push({
-        label: menuItem.label,
+        label: t(menuItem.labelKey),
         path: menuItem.path,
         icon: menuItem.icon,
       })
     } else {
-      // For paths not defined in the menu, create a formatted label.
       breadcrumbs.push({
         label: formatBreadcrumbLabel(segment),
         path: currentPath,
@@ -103,12 +86,10 @@ function generateBreadcrumbs(pathname: string): BreadcrumbItem[] {
 }
 
 function findMenuItemByPath(path: string) {
-  // Search through the menu items for a matching path.
   return menuItems.find((item) => item.path === path)
 }
 
 function formatBreadcrumbLabel(segment: string): string {
-  // Convert kebab-case or camelCase to Title Case with spaces.
   return segment
     .replace(/-/g, " ")
     .replace(/([a-z])([A-Z])/g, "$1 $2")
